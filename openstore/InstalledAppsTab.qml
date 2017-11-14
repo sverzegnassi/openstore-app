@@ -46,19 +46,32 @@ Page {
 
             model: SortFilterModel {
                 id: sortedModel
-                sort.property: "updateAvailable"
-                sort.order: Qt.DescendingOrder
+                sort.property: "packageStatus"
+                sort.order: Qt.AscendingOrder
                 model: appModel
             }
 
             // WORKAROUND: Fix for wrong grid unit size
             Component.onCompleted: root.flickable_responsive_scroll_fix(view)
 
-            section.property: "updateAvailable"
-            section.delegate: Components.SectionDivider {
+            section.property: "packageStatus"
+            /*section.delegate: Components.SectionDivider {
                 height: units.gu(6)
                 // TRANSLATORS: %1 is the number of items in a given section ("Available updates" or "Installed apps")
                 text: section == "true" ? i18n.tr("Available updates (%1)").arg(appModel.updatesAvailableCount) : i18n.tr("Installed apps (%1)").arg(sortedModel.count - appModel.updatesAvailableCount)
+            }*/
+            section.delegate: ListItemLayout {
+                title.anchors.topMargin: units.gu(2)
+                title.text: section == AppModel.PackageUpdateAvailable
+                        ? i18n.tr("Available updates (%1)").arg(appModel.updatesAvailableCount)
+                        : section == AppModel.PackageIsNotFromOpenStore
+                          ? i18n.tr("Packages from different sources (%1)").arg(appModel.notFromOpenStoreCount)
+                          : i18n.tr("Installed apps (%1)").arg(sortedModel.count - appModel.updatesAvailableCount - appModel.notFromOpenStoreCount)
+
+                summary.text: section == AppModel.PackageIsNotFromOpenStore
+                              ? i18n.tr("Following packages do not come from OpenStore (e.g. they might be a development version of existing apps).\nWe offer you the ability to downgrade to the latest stable version available in our repository.")
+                              : ""
+                summary.maximumLineCount: Number.MAX_VALUE
             }
 
             delegate: ListItem {

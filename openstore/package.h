@@ -10,6 +10,8 @@
 class PackageItem: public QObject
 {
     Q_OBJECT
+    Q_ENUMS(PackageStatus)
+
     Q_PROPERTY(QString name READ name NOTIFY updated)
     Q_PROPERTY(QString icon READ icon NOTIFY updated)
     Q_PROPERTY(QString appId READ appId NOTIFY updated)
@@ -35,6 +37,7 @@ class PackageItem: public QObject
     Q_PROPERTY(bool updateAvailable READ updateAvailable NOTIFY updated)
     Q_PROPERTY(QDateTime publishedDate READ publishedDate NOTIFY updated)
     Q_PROPERTY(QDateTime updatedDate READ updatedDate NOTIFY updated)
+    Q_PROPERTY(PackageStatus packageStatus READ packageStatus NOTIFY updated)
 
     Q_ENUMS(Hook)
     Q_FLAGS(Hooks)
@@ -49,6 +52,12 @@ public:
         HookPushHelper = 32
     };
     Q_DECLARE_FLAGS(Hooks, Hook)
+
+    enum PackageStatus {
+        PackageUpdateAvailable,
+        PackageIsLatest,
+        PackageIsNotFromOpenStore
+    };
 
     struct HookStruct {
         QString name;
@@ -85,6 +94,8 @@ public:
     bool installed() const { return !m_installedVersion.isNull(); }
     QDateTime publishedDate() const { return m_publishedDate; }
     QDateTime updatedDate() const { return m_updatedDate; }
+    PackageStatus packageStatus() const { return isLocalVersionSideloaded() ? PackageIsNotFromOpenStore
+                                                                            : updateAvailable() ? PackageUpdateAvailable : PackageIsLatest; }
 
     Q_INVOKABLE QString permissions(int index) const { return m_hooks.at(index).permissions.join(", "); }
     Q_INVOKABLE Hooks hooks(int index) const { return m_hooks.at(index).hooks; }

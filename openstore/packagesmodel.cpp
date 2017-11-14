@@ -33,7 +33,7 @@ QHash<int, QByteArray> PackagesModel::roleNames() const
     roles.insert(RoleName, "name");
     roles.insert(RoleAppId, "appId");
     roles.insert(RoleIcon, "icon");
-    roles.insert(RoleUpdateAvailable, "updateAvailable");
+    roles.insert(RolePackageStatus, "packageStatus");
 
     return roles;
 }
@@ -58,8 +58,8 @@ QVariant PackagesModel::data(const QModelIndex & index, int role) const
         return pkg.appId;
     case RoleIcon:
         return pkg.icon;
-    case RoleUpdateAvailable:
-        return pkg.updateAvailable;
+    case RolePackageStatus:
+        return pkg.status;
 
     default:
         return QVariant();
@@ -71,7 +71,20 @@ int PackagesModel::updatesAvailableCount() const
     int result = 0;
 
     Q_FOREACH (const LocalPackageItem &pkg, m_list) {
-        if (pkg.updateAvailable) {
+        if (pkg.status == PackageStatus::PackageUpdateAvailable) {
+            ++result;
+        }
+    }
+
+    return result;
+}
+
+int PackagesModel::notFromOpenStoreCount() const
+{
+    int result = 0;
+
+    Q_FOREACH (const LocalPackageItem &pkg, m_list) {
+        if (pkg.status == PackageStatus::PackageIsNotFromOpenStore) {
             ++result;
         }
     }
@@ -100,7 +113,16 @@ void PackagesModel::refresh()
 
         if (PackagesCache::instance()->getRemoteAppRevision(pkgItem.appId) != -1) {
             pkgItem.name = map.value("title").toString();
-            pkgItem.updateAvailable = bool(PackagesCache::instance()->getRemoteAppRevision(pkgItem.appId) > PackagesCache::instance()->getLocalAppRevision(pkgItem.appId));
+
+            const int localRevision = PackagesCache::instance()->getLocalAppRevision(pkgItem.appId);
+            const int remoteRevision = PackagesCache::instance()->getRemoteAppRevision(pkgItem.appId);
+
+            if (pkgItem.appId.contains("com.ubuntu"))
+                qDebug() << Q_FUNC_INFO << pkgItem.appId << localRevision << remoteRevision;
+
+            pkgItem.status = (localRevision < 1) ? PackageStatus::PackageIsNotFromOpenStore
+                                                 : remoteRevision > localRevision ? PackageStatus::PackageUpdateAvailable
+                                                                                  : PackageStatus::PackageIsLatest;
 
             //pkgItem.icon = map.value("icon").toString();
             if (pkgItem.icon.isEmpty()) {
@@ -136,7 +158,7 @@ void PackagesModel::refresh()
 
             // Check if there's an update for OpenStore
             if (pkgItem.appId == m_appStoreAppId) {
-                m_appStoreUpdateAvailable = pkgItem.updateAvailable;
+                m_appStoreUpdateAvailable = bool(pkgItem.status == PackageStatus::PackageUpdateAvailable);
                 Q_EMIT appStoreUpdateAvailableChanged();
             }
         }
