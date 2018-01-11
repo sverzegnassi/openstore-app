@@ -25,6 +25,14 @@ Page {
 
     header: PageHeader {
         title: i18n.tr("My Apps")
+
+        trailingActionBar {
+            actions: Action {
+                iconName: "settings"
+                text: i18n.tr("Settings")
+                onTriggered: pageStack.push(Qt.resolvedUrl("SettingsPage.qml"))
+            }
+        }
     }
 
     ScrollView {
@@ -94,14 +102,14 @@ Page {
                 }
                 
                 function slot_installedPackageDetailsReady(pkg) {
-                    appModel.packageDetailsReady.disconnect(slot_installedPackageDetailsReady)
+                    PackagesCache.packageDetailsReady.disconnect(slot_installedPackageDetailsReady)
                     bottomEdgeStack.clear()
                     bottomEdgeStack.push(Qt.resolvedUrl("AppDetailsPage.qml"), { app: pkg })
                 }
 
                 onClicked: {
-                    appModel.packageDetailsReady.connect(slot_installedPackageDetailsReady)
-                    appModel.showPackageDetails(model.appId)
+                    PackagesCache.packageDetailsReady.connect(slot_installedPackageDetailsReady)
+                    PackagesCache.getPackageDetails(model.appId)
                 }
             }
         }

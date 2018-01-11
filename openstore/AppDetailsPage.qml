@@ -200,47 +200,9 @@ Page {
                 }
             }
 
-            ListItem {
+            Components.ScreenshotsCarousel {
                 height: units.gu(32)
-                visible: screenshotsView.count
-
-                // TODO: Reminder for the future: make it as carousel, so users can swipe between them.
-                ListView {
-                    id: screenshotsView
-                    anchors { left: parent.left; right: parent.right; verticalCenter: parent.verticalCenter }
-                    leftMargin: units.gu(2)
-                    rightMargin: units.gu(2)
-                    clip: true
-                    height: count > 0 ? units.gu(24) : 0
-                    visible: count > 0
-                    spacing: units.gu(1)
-                    orientation: ListView.Horizontal
-                    model: app.screenshots
-                    delegate: UbuntuShape {
-                        height: parent.height
-                        // sh : lv.h = sw : x
-                        width: screenshot.sourceSize.width * height / screenshot.sourceSize.height
-                        aspect: UbuntuShape.Flat
-                        sourceFillMode: UbuntuShape.PreserveAspectFit
-                        source: Image {
-                            id: screenshot
-                            source: modelData
-                            smooth: true
-                            antialiasing: true
-                        }
-
-                        AbstractButton {
-                            id: screenShotButton
-                            anchors.fill: parent
-                            onClicked: {
-                                print("opening at:", screenShotButton.mapToItem(root, 0, 0).x)
-                                var zoomIn = Qt.createComponent(Qt.resolvedUrl("../Components/ScreenshotImage.qml"));
-                                zoomIn.createObject(root, {x: screenShotButton.mapToItem(root, 0, 0).x, y: screenShotButton.mapToItem(root, 0, 0).y, itemScale: screenShotButton.height / root.height, imageSource: modelData});
-                                //                            zoomIn.createObject(root, {x: 100, y: 100});
-                            }
-                        }
-                    }
-                }
+                model: app.screenshots
             }
 
             ListItem {
@@ -462,7 +424,6 @@ Page {
                         ListItemLayout {
                             anchors { left: parent.left; right: parent.right }
                             anchors.leftMargin: units.gu(-2)
-                            height: units.gu(6)
                             visible: permissions.length > 0
 
                             Icon {
@@ -506,7 +467,6 @@ Page {
                         ListItemLayout {
                             anchors { left: parent.left; right: parent.right }
                             anchors.leftMargin: units.gu(-2)
-                            height: units.gu(6)
                             visible: readpaths.length > 0
 
                             Icon {
@@ -525,7 +485,6 @@ Page {
                         ListItemLayout {
                             anchors { left: parent.left; right: parent.right }
                             anchors.leftMargin: units.gu(-2)
-                            height: units.gu(6)
                             visible: writepaths.length > 0
                             Icon {
                                 SlotsLayout.position: SlotsLayout.Leading
